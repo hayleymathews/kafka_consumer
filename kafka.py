@@ -15,7 +15,6 @@ class KafkaProducer(object):
         self.producer.flush(1)
 
     def serializer(self, data_iter):
-        # TODO: actually ... 
         for data in data_iter:
             yield pickle.dumps(data)
     
