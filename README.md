@@ -1,32 +1,15 @@
-####Producer
-```
->>> from kafka import KafkaProducer
->>> producer = KafkaProducer()
->>> data = range(0, 10, 2)
->>> producer.produce('add_10', data) # send data to add_10 topic
->>> producer.produce('sub_10', data) # send data to sub_10 topic
-```
+a very simplified streaming ml pipeline to serve predictions
 
-####Consumer
+three services:
+
+1. etl - ingests data, does some light feature engineering
+2. model - makes predictions
+3. app - consumes data from etl and model service  
+
+
+to run you'll need kafka installed locally, and mongodb running. then start the services
 ```
->>> from kafka import KafkaConsumer
->>> consumer = KafkaConsumer()
->>> def process_func(topic, data):
-...     if topic == 'add_10':
-...         print(data, data + 10)
-...     elif topic == 'sub_10':
-...         print(data, data - 10)
-...     else:
-...         print(data)
->>> consumer.consume(['add_10', 'sub_10'], process_func=process_func)
-0 10
-2 12
-4 14
-6 16
-8 18
-0 -10
-2 -8
-4 -6
-6 -4
-8 -2
+python etl.py     
+python model.py  
+python app.py    
 ```

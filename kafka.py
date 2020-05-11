@@ -1,4 +1,6 @@
 import pickle
+import time
+import datetime
 from confluent_kafka import Producer, Consumer, KafkaError
 
 class KafkaProducer(object):
@@ -30,21 +32,23 @@ class KafkaConsumer(object):
         self.consumer = Consumer({'bootstrap.servers': ','.join(servers),
                                   'group.id': group_id})
 
-    def consume(self, topics, process_func=None):
+    def consume(self, topics, process_func=None, logging=False):
         process_func = process_func or self.logger
         self.consumer.subscribe(topics)
         while True:
-            msg = self.consumer.poll(1)
+            msg = self.consumer.poll(5)
+            if logging:
+                print(msg, datetime.datetime.fromtimestamp(time.time()).strftime('%c'))
             if not msg:
                 continue
-            if msg.error():
-                if msg.error().code() == KafkaError._PARTITION_EOF:
-                    continue
-                else:
-                    print(msg.error())
-                    break
-            data = pickle.loads(msg.value())
-            process_func(msg.topic(), data)
+            elif not msg.error():
+                data = pickle.loads(msg.value())
+                process_func(msg.topic(), data)
+            elif msg.error().code() == KafkaError._PARTITION_EOF:
+                continue
+            else:
+                print(msg.error())
+                break
         self.consumer.close()
     
     def logger(self, topic, data):
